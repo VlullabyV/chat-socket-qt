@@ -1,0 +1,2 @@
+* 课程作业：基于socket编程实现单播和组播的聊天程序，在qt界面下。
+* 修改服务器宏定义PORT代表端口号，客户端chat.cpp文件下宏定义SERVERIP，SERVERPORT分别代表服务器IP地址和服务器端口号。
