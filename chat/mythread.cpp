@@ -5,26 +5,23 @@ MyThread::MyThread(QObject *parent) :
     stopped = false;
 }
 
-MyThread::MyThread(Socket *socket, QObject *parent) :
-    QThread(parent) {
-    st = socket;
-    stopped = false;
-}
-
+//设置指定的Socket类实例
 void MyThread::setSocket(Socket *socket) {
     st = socket;
 }
 
+//线程运行
 void MyThread::run() {
     while(!stopped) {
         char recv_buf[SIZE];
         memset(recv_buf, 0, SIZE);
-        st->recv(recv_buf);
-        emit update(QString(recv_buf));
+        if (st->recv(recv_buf))
+            emit update(QString(recv_buf));
         QThread::sleep(1);
     }
 }
 
+//线程结束
 void MyThread::stop() {
     stopped = true;
 }

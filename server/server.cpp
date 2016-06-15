@@ -13,6 +13,8 @@
 #define	PORT 8888
 #define	SIZE 2048
 
+#define MULTIPORT 9999
+
 std::map<std::string, std::string> ipmap;
 
 std::string returnIpList() {
@@ -57,7 +59,7 @@ int main ( int argc, char *argv[] )
         close(sockfd);
         exit(-1);
     }
-    
+
     char send_buf[SIZE];
     char recv_buf[SIZE];
     char fromip[20];
@@ -97,7 +99,7 @@ int main ( int argc, char *argv[] )
         token = strtok(NULL, ":");
         strcpy(msg, token);
         
-        if (strcmp(toip, "1.1.1.1") == 0 && toport == 1000) {
+        if (strcmp(toip, "1.1.1.1") == 0 && toport == 10000) {
             
             std::string tmp = "";
             tmp += fromip;
@@ -114,13 +116,13 @@ int main ( int argc, char *argv[] )
             }
             
             std::string list = "iplist:";
-            list += returnIpList();
-            strcpy(send_buf, list.c_str());
             
             std::string res, tmp1, tmp2;
             int pos;
             std::map<std::string ,std::string >::iterator it;
             for(it=ipmap.begin(); it!=ipmap.end(); ++it) {
+                list = "iplist:";
+                memset(send_buf, 0, SIZE);
                 res = it->second;
                 pos = (int)res.find(":");
                 tmp1 = res.substr(0, pos);
@@ -128,6 +130,10 @@ int main ( int argc, char *argv[] )
                 client_to.sin_addr.s_addr = inet_addr(tmp1.c_str());
                 toport = atoi(tmp2.c_str());
                 client_to.sin_port = htons(toport);
+                list += it->second;
+                list += "(本机地址) ";
+                list += returnIpList();
+                strcpy(send_buf, list.c_str());
                 sendto(sockfd, send_buf, SIZE, 0, (struct sockaddr*)&client_to, len);
             }
             
@@ -136,32 +142,16 @@ int main ( int argc, char *argv[] )
             strcpy(send_buf, fromip);
             strcat(send_buf, ":");
             strcat(send_buf, fromportch);
-            strcat(send_buf, ":");
+            strcat(send_buf, "：");
             strcat(send_buf, msg);
-
-            if (0 == strcmp(toip, "224.0.0.1")) {
-                std::string res, tmp1, tmp2;
-                int pos;
-                std::map<std::string ,std::string >::iterator it;
-                for(it=ipmap.begin(); it!=ipmap.end(); ++it) {
-                    res = it->second;
-                    pos = (int)res.find(":");
-                    tmp1 = res.substr(0, pos);
-                    tmp2 = res.substr(pos+1);
-                    client_to.sin_addr.s_addr = inet_addr(tmp1.c_str());
-                    toport = atoi(tmp2.c_str());
-                    client_to.sin_port = htons(toport);
-                    sendto(sockfd, send_buf, SIZE, 0, (struct sockaddr*)&client_to, len);
-                }
-            } else {
-                client_to.sin_addr.s_addr = inet_addr(toip);
-                client_to.sin_port = htons(toport);
-                rvalue = -1;
-                rvalue = sendto(sockfd, send_buf, SIZE, 0, (struct sockaddr*)&client_to, len);
-                if (0 > rvalue) {
-                    fprintf(stderr,"error in sending data\n");
-                    continue;
-                }
+            
+            client_to.sin_addr.s_addr = inet_addr(toip);
+            client_to.sin_port = htons(toport);
+            rvalue = -1;
+            rvalue = sendto(sockfd, send_buf, SIZE, 0, (struct sockaddr*)&client_to, len);
+            if (0 > rvalue) {
+                fprintf(stderr,"error in sending data\n");
+                continue;
             }
         }
     }
